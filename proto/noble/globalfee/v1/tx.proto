@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package noble.globalfee.v1;
+
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/noble-assets/globalfee/types";
+
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  rpc UpdateGasPrices(MsgUpdateGasPrices) returns (MsgUpdateGasPricesResponse);
+  rpc UpdateBypassMessages(MsgUpdateBypassMessages) returns (MsgUpdateBypassMessagesResponse);
+}
+
+// MsgUpdateGasPrices is the request of the UpdateGasPrices action.
+message MsgUpdateGasPrices {
+  option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name) = "noble/globalfee/UpdateGasPrices";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated cosmos.base.v1beta1.DecCoin gas_prices = 2 [
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// MsgUpdateGasPricesResponse is the response of the UpdateGasPrices action.
+message MsgUpdateGasPricesResponse {}
+
+// MsgUpdateBypassMessages is the request of the UpdateBypassMessages action.
+message MsgUpdateBypassMessages {
+  option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name) = "noble/globalfee/UpdateBypassMessages";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated string bypass_messages = 2;
+}
+
+// MsgUpdateBypassMessagesResponse is the response of the UpdateBypassMessages action.
+message MsgUpdateBypassMessagesResponse {}

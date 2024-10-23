@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package noble.globalfee.module.v1;
+
+import "cosmos/app/v1alpha1/module.proto";
+
+// Module is the config object of the GlobalFee module.
+message Module {
+  option (cosmos.app.v1alpha1.module) = {go_import: "github.com/noble-assets/globalfee"};
+
+  // authority is the address that controls the parameters of this module.
+  string authority = 1;
+}

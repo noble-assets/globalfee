@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package noble.globalfee.v1;
+
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/noble-assets/globalfee/types";
+
+// GenesisState defines the genesis state of the GlobalFee module.
+message GenesisState {
+  // gas_prices defines a list of gas prices to be used when checking a transaction's fee.
+  repeated cosmos.base.v1beta1.DecCoin gas_prices = 1 [
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable) = false
+  ];
+
+  // bypass_messages defines a list of message types that can bypass the required fees.
+  repeated string bypass_messages = 2;
+}

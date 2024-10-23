@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package noble.globalfee.v1;
+
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/noble-assets/globalfee/types";
+
+// GasPrices is a wrapper type around sdk.DecCoins to be used with collections.
+message GasPrices {
+  repeated cosmos.base.v1beta1.DecCoin value = 1 [
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable) = false
+  ];
+}
