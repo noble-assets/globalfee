@@ -19,16 +19,15 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/noble-assets/globalfee/utils"
-	"github.com/noble-assets/globalfee/utils/mocks"
-
 	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/noble-assets/globalfee/keeper"
 	"github.com/noble-assets/globalfee/types"
+	"github.com/noble-assets/globalfee/utils"
+	"github.com/noble-assets/globalfee/utils/mocks"
 	"github.com/stretchr/testify/require"
 )
 

@@ -26,7 +26,7 @@ import (
 
 // TxFeeChecker returns a custom ante.TxFeeChecker that ensures the fees for a
 // given transaction respect the gas prices set in the GlobalFee module.
-func TxFeeChecker(keeper keeper.Keeper) ante.TxFeeChecker {
+func TxFeeChecker(keeper *keeper.Keeper) ante.TxFeeChecker {
 	return func(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
 		feeTx, ok := tx.(sdk.FeeTx)
 		if !ok {
@@ -46,6 +46,9 @@ func TxFeeChecker(keeper keeper.Keeper) ante.TxFeeChecker {
 		requiredFees, err := keeper.GetRequiredFees(ctx, feeTx)
 		if err != nil {
 			return nil, 0, err
+		}
+		if len(requiredFees) == 0 {
+			return sdk.Coins{}, 0, nil
 		}
 
 		fees := feeTx.GetFee()

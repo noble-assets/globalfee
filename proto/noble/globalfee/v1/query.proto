@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package noble.globalfee.v1;
+
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/query/v1/query.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/noble-assets/globalfee/types";
+
+service Query {
+  rpc GasPrices(QueryGasPrices) returns (QueryGasPricesResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/noble/globalfee/v1/gas_prices";
+  }
+
+  rpc BypassMessages(QueryBypassMessages) returns (QueryBypassMessagesResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/noble/globalfee/v1/bypass_messages";
+  }
+}
+
+message QueryGasPrices {}
+
+message QueryGasPricesResponse {
+  repeated cosmos.base.v1beta1.DecCoin gas_prices = 1 [
+    (amino.dont_omitempty) = true,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message QueryBypassMessages {}
+
+message QueryBypassMessagesResponse {
+  repeated string bypass_messages = 1 [(amino.dont_omitempty) = true];
+}

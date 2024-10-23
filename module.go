@@ -15,9 +15,11 @@
 package globalfee
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/depinject"
@@ -27,8 +29,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	modulev1 "github.com/noble-assets/globalfee/api/module/v1"
+	globalfeev1 "github.com/noble-assets/globalfee/api/v1"
 	"github.com/noble-assets/globalfee/keeper"
 	"github.com/noble-assets/globalfee/types"
 )
@@ -65,7 +69,11 @@ func (AppModuleBasic) RegisterInterfaces(reg codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(reg)
 }
 
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+}
 
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesisState())
@@ -85,12 +93,14 @@ func (b AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncoding
 type AppModule struct {
 	AppModuleBasic
 
-	keeper *keeper.Keeper
+	subspace paramstypes.Subspace
+	keeper   *keeper.Keeper
 }
 
-func NewAppModule(registry codectypes.InterfaceRegistry, keeper *keeper.Keeper) AppModule {
+func NewAppModule(registry codectypes.InterfaceRegistry, subspace paramstypes.Subspace, keeper *keeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(registry),
+		subspace:       subspace,
 		keeper:         keeper,
 	}
 }
@@ -115,6 +125,60 @@ func (m AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawM
 
 func (m AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServer(m.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServer(m.keeper))
+
+	migrator := NewMigrator(m.subspace, m.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, migrator.Migrate1to2); err != nil {
+		panic(fmt.Sprintf("failed to migrate GlobalFee from version 1 to 2: %v", err))
+	}
+}
+
+//
+
+func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
+	return &autocliv1.ModuleOptions{
+		Tx: &autocliv1.ServiceCommandDescriptor{
+			Service: globalfeev1.Msg_ServiceDesc.ServiceName,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					// TODO: This doesn't seem to work as AutoCLI doesn't know
+					//  how to parse sdk.DecCoin - disabling for now.
+					Skip:      true,
+					RpcMethod: "UpdateGasPrices",
+					Use:       "update-gas-prices [gas-prices ...]",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{
+							ProtoField: "gas_prices",
+							Varargs:    true,
+						},
+					},
+				},
+				{
+					RpcMethod: "UpdateBypassMessages",
+					Use:       "update-bypass-messages [bypass-messages ...]",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{
+							ProtoField: "bypass_messages",
+							Varargs:    true,
+						},
+					},
+				},
+			},
+		},
+		Query: &autocliv1.ServiceCommandDescriptor{
+			Service: globalfeev1.Query_ServiceDesc.ServiceName,
+			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
+				{
+					RpcMethod: "GasPrices",
+					Use:       "gas-prices",
+				},
+				{
+					RpcMethod: "BypassMessages",
+					Use:       "bypass-messages",
+				},
+			},
+		},
+	}
 }
 
 //
@@ -132,6 +196,7 @@ type ModuleInputs struct {
 	Service  store.KVStoreService
 	Registry codectypes.InterfaceRegistry
 	Cdc      codec.Codec
+	Subspace paramstypes.Subspace
 }
 
 type ModuleOutputs struct {
@@ -153,7 +218,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.Service,
 		in.Cdc,
 	)
-	m := NewAppModule(in.Registry, k)
+	m := NewAppModule(in.Registry, in.Subspace, k)
 
 	return ModuleOutputs{Keeper: k, Module: m}
 }
