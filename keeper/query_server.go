@@ -50,11 +50,7 @@ func (k queryServer) BypassMessages(ctx context.Context, req *types.QueryBypassM
 		return nil, errors.ErrInvalidRequest
 	}
 
-	var bypassMessages []string
-	err := k.Keeper.BypassMessages.Walk(ctx, nil, func(bypassMessage string) (stop bool, err error) {
-		bypassMessages = append(bypassMessages, bypassMessage)
-		return false, nil
-	})
+	bypassMessages, err := k.GetBypassMessages(ctx)
 
 	return &types.QueryBypassMessagesResponse{BypassMessages: bypassMessages}, err
 }

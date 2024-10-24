@@ -228,11 +228,7 @@ func TestUpdateBypassMessages(t *testing.T) {
 	})
 	// ASSERT: The action should've succeeded.
 	require.NoError(t, err)
-	var bypassMessages []string
-	err = k.BypassMessages.Walk(ctx, nil, func(bypassMessage string) (stop bool, err error) {
-		bypassMessages = append(bypassMessages, bypassMessage)
-		return false, nil
-	})
+	bypassMessages, err := k.GetBypassMessages(ctx)
 	require.NoError(t, err)
 	require.Len(t, bypassMessages, 1)
 	require.Contains(t, bypassMessages, "/noble.globalfee.v1.MsgUpdateBypassMessages")

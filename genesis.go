@@ -40,11 +40,7 @@ func ExportGenesis(ctx context.Context, k *keeper.Keeper) *types.GenesisState {
 		panic(err)
 	}
 
-	var bypassMessages []string
-	err = k.BypassMessages.Walk(ctx, nil, func(bypassMessage string) (stop bool, err error) {
-		bypassMessages = append(bypassMessages, bypassMessage)
-		return false, nil
-	})
+	bypassMessages, err := k.GetBypassMessages(ctx)
 	if err != nil {
 		panic(err)
 	}
