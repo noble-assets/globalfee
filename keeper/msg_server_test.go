@@ -118,13 +118,16 @@ func TestUpdateGasPrices(t *testing.T) {
 	// ASSERT: The action should've failed due to repeated denom.
 	require.ErrorContains(t, err, "denom uusdc is repeated")
 
-	// ACT: Attempt to update gas prices. Len(GasPrices) > 1. Unsorted denoms.
+	// ACT: Attempt to update gas prices. Len(GasPrices) > 1. Invalid second denom.
 	_, err = server.UpdateGasPrices(ctx, &types.MsgUpdateGasPrices{
-		Signer:    "authority",
-		GasPrices: sdk.DecCoins{USDC, EURe},
+		Signer: "authority",
+		GasPrices: sdk.DecCoins{
+			EURe,
+			sdk.DecCoin{Denom: "-", Amount: usdAmount.MulInt64(-1)},
+		},
 	})
-	// ASSERT: The action should've failed due to unsorted denoms.
-	require.ErrorContains(t, err, "denom ueure is not sorted")
+	// ASSERT: The action should've failed due to invalid denom.
+	require.ErrorContains(t, err, "invalid denom: -")
 
 	// ACT: Attempt to update gas prices. Len(GasPrices) > 1. Invalid second amount.
 	_, err = server.UpdateGasPrices(ctx, &types.MsgUpdateGasPrices{

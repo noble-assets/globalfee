@@ -21,39 +21,30 @@ import (
 )
 
 // Validate is a utility that verifies the provided gas prices. It ensures that
-// entries are sorted, don't contain negative amounts, and don't contain invalid
-// or repeated denoms.
+// prices are not negative, and that denoms are both valid and not repeated.
 func (raw *GasPrices) Validate() error {
 	gasPrices := raw.Value
 
 	switch gasPrices.Len() {
 	case 0:
 		return nil
-	case 1:
-		return ValidateGasPrice(gasPrices[0])
 	default:
 		if err := ValidateGasPrice(gasPrices[0]); err != nil {
 			return err
 		}
 
-		denom := gasPrices[0].Denom
 		seen := make(map[string]bool)
-		seen[denom] = true
+		seen[gasPrices[0].Denom] = true
 
 		for _, gasPrice := range gasPrices[1:] {
 			if seen[gasPrice.Denom] {
 				return fmt.Errorf("denom %s is repeated", gasPrice.Denom)
 			}
 
-			if gasPrice.Denom <= denom {
-				return fmt.Errorf("denom %s is not sorted", gasPrice.Denom)
-			}
-
 			if err := ValidateGasPrice(gasPrice); err != nil {
 				return err
 			}
 
-			denom = gasPrice.Denom
 			seen[gasPrice.Denom] = true
 		}
 
