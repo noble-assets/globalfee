@@ -57,3 +57,17 @@ test-unit:
 	@echo "🤖 Running unit tests..."
 	@go test -cover -coverprofile=coverage.out -race -v ./keeper/...
 	@echo "✅ Completed unit tests!"
+
+local-image:
+	@echo "🤖 Building image..."
+	@heighliner build --file ./e2e/chains.yaml --chain globalfee-simd --local 
+	@echo "✅ Completed build!"
+
+###############################################################################
+###                              Build Simapp                               ###
+###############################################################################
+
+build:
+	@echo "🤖 Building simd..."
+	@cd simapp && make build
+	@echo "✅ Completed build!"
