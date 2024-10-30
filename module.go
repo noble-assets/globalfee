@@ -150,6 +150,7 @@ func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 				{
 					RpcMethod: "UpdateBypassMessages",
 					Use:       "update-bypass-messages [bypass-messages ...]",
+					Example:   "update-bypass-messages /cosmos.bank.v1beta1.MsgSend /noble.globalfee.v1.MsgUpdateGasPrices",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
 						{
 							ProtoField: "bypass_messages",
