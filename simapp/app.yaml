@@ -6,7 +6,7 @@ modules:
       pre_blockers: [ upgrade ]
       begin_blockers: [ staking ]
       end_blockers: [ staking ]
-      init_genesis: [ auth, bank, staking, genutil, params, upgrade, globalfee ]
+      init_genesis: [ auth, bank, staking, globalfee, genutil, params, upgrade ]
       override_store_keys:
         - module_name: auth
           kv_store_key: acc
@@ -44,12 +44,12 @@ modules:
     config:
       "@type": cosmos.upgrade.module.v1.Module
       # NOTE: This is a dummy account used for local testing.
-      # market ready pilot lunch host cancel drive script remove brief lunch entry worth giant unknown grain romance gym tide perfect short because envelope sentence
-      authority: noble1u8mhfyh8a753twmwnsl9ce77cfuuez47sahdnw
+      # usual parade country forward clerk group ripple dust upset sun spike dish business foster lawn jealous panther junior kite sail erosion bean armed soup
+      authority: noble1te940q4wj533djddn8z9cf7dyhp7exfhf660dgw
 
   - name: globalfee
     config:
       "@type": noble.globalfee.module.v1.Module
       # NOTE: This is a dummy account used for local testing.
-      # market ready pilot lunch host cancel drive script remove brief lunch entry worth giant unknown grain romance gym tide perfect short because envelope sentence
-      authority: noble1u8mhfyh8a753twmwnsl9ce77cfuuez47sahdnw
+      # usual parade country forward clerk group ripple dust upset sun spike dish business foster lawn jealous panther junior kite sail erosion bean armed soup
+      authority: noble1te940q4wj533djddn8z9cf7dyhp7exfhf660dg

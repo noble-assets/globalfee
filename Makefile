@@ -1,5 +1,14 @@
-.PHONY: proto-format proto-lint proto-gen license format lint test-unit
-all: proto-all format lint test-unit
+.PHONY: proto-format proto-lint proto-gen license format lint test-unit build local-image test-e2e
+all: proto-all format lint test-unit build local-image test-e2e
+
+###############################################################################
+###                                  Build                                  ###
+###############################################################################
+
+build:
+	@echo "🤖 Building simd..."
+	@cd simapp && make build 1> /dev/null
+	@echo "✅ Completed build!"
 
 ###############################################################################
 ###                                 Tooling                                 ###
@@ -53,21 +62,17 @@ proto-lint:
 ###                                 Testing                                 ###
 ###############################################################################
 
+local-image:
+	@echo "🤖 Building image..."
+	@heighliner build --file ./e2e/chains.yaml --chain noble-globalfee-simd --local
+	@echo "✅ Completed build!"
+
 test-unit:
 	@echo "🤖 Running unit tests..."
 	@go test -cover -coverprofile=coverage.out -race -v ./keeper/...
 	@echo "✅ Completed unit tests!"
 
-local-image:
-	@echo "🤖 Building image..."
-	@heighliner build --file ./e2e/chains.yaml --chain globalfee-simd --local 
-	@echo "✅ Completed build!"
-
-###############################################################################
-###                              Build Simapp                               ###
-###############################################################################
-
-build:
-	@echo "🤖 Building simd..."
-	@cd simapp && make build
-	@echo "✅ Completed build!"
+test-e2e:
+	@echo "🤖 Running e2e tests..."
+	@cd e2e && go test -timeout 15m -race -v ./...
+	@echo "✅ Completed e2e tests!"

@@ -1,3 +1,17 @@
+// Copyright 2024 NASD Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package e2e
 
 import (
@@ -6,8 +20,6 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdktestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	"github.com/noble-assets/globalfee/types"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -17,23 +29,19 @@ import (
 )
 
 type ChainWrapper struct {
-	Chain    *cosmos.CosmosChain
-	AuthWall ibc.Wallet
+	Chain     *cosmos.CosmosChain
+	Authority ibc.Wallet
 }
 
-func ChainSpinUp(t *testing.T, ctx context.Context) (cw ChainWrapper) {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount("noble", "noblepub")
-
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
-
+func GlobalFeeSuite(t *testing.T) (ctx context.Context, wrapper ChainWrapper) {
+	ctx = context.Background()
+	reporter := testreporter.NewNopReporter()
+	execReporter := reporter.RelayerExecReporter(t)
 	client, network := interchaintest.DockerSetup(t)
 
-	numValidators := 1
-	numFullNodes := 0
+	numValidators, numFullNodes := 1, 0
 
-	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
+	factory := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			NumValidators: &numValidators,
 			NumFullNodes:  &numFullNodes,
@@ -50,61 +58,46 @@ func ChainSpinUp(t *testing.T, ctx context.Context) (cw ChainWrapper) {
 				TrustingPeriod: "504hr",
 				Images: []ibc.DockerImage{
 					{
-						Repository: "globalfee-simd",
+						Repository: "noble-globalfee-simd",
 						Version:    "local",
 						UidGid:     "1025:1025",
 					},
 				},
-				EncodingConfig: appEncoding(),
-				PreGenesis:     preGenAuthority(ctx, &cw),
-				ModifyGenesis: cosmos.ModifyGenesis(
-					[]cosmos.GenesisKV{
-						cosmos.NewGenesisKV("app_state.globalfee.gas_prices", sdk.DecCoins{sdk.DecCoin{Denom: "ustake", Amount: math.LegacyZeroDec()}}),
-					},
-				),
+				PreGenesis: preGenAuthority(ctx, &wrapper),
 			},
 		},
 	})
 
-	chains, err := cf.Chains(t.Name())
+	chains, err := factory.Chains(t.Name())
 	require.NoError(t, err)
 
-	cw.Chain = chains[0].(*cosmos.CosmosChain)
+	wrapper.Chain = chains[0].(*cosmos.CosmosChain)
+	interchain := interchaintest.NewInterchain().AddChain(wrapper.Chain)
 
-	ic := interchaintest.NewInterchain().
-		AddChain(cw.Chain)
-
-	require.NoError(t, ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+	require.NoError(t, interchain.Build(ctx, execReporter, interchaintest.InterchainBuildOptions{
 		TestName:  t.Name(),
 		Client:    client,
 		NetworkID: network,
 
 		SkipPathCreation: true,
 	}))
+
 	t.Cleanup(func() {
-		_ = ic.Close()
+		_ = interchain.Close()
 	})
 
 	return
 }
 
-func preGenAuthority(ctx context.Context, cw *ChainWrapper) func(ibc.Chain) (err error) {
-	return func(c ibc.Chain) error {
-		val := cw.Chain.Validators[0]
+func preGenAuthority(ctx context.Context, wrapper *ChainWrapper) func(ibc.Chain) error {
+	return func(chain ibc.Chain) (err error) {
+		validator := wrapper.Chain.Validators[0]
 
-		var err error
-		cw.AuthWall, err = val.Chain.BuildWallet(ctx, "auth-wallet", "market ready pilot lunch host cancel drive script remove brief lunch entry worth giant unknown grain romance gym tide perfect short because envelope sentence")
+		wrapper.Authority, err = validator.Chain.BuildWallet(ctx, "authority", "usual parade country forward clerk group ripple dust upset sun spike dish business foster lawn jealous panther junior kite sail erosion bean armed soup")
 		if err != nil {
 			return err
 		}
 
-		return val.AddGenesisAccount(ctx, cw.AuthWall.FormattedAddress(), []sdk.Coin{sdk.NewCoin(c.Config().Denom, math.ZeroInt())})
+		return validator.AddGenesisAccount(ctx, wrapper.Authority.FormattedAddress(), []sdk.Coin{sdk.NewCoin(chain.Config().Denom, math.ZeroInt())})
 	}
-}
-
-func appEncoding() *sdktestutil.TestEncodingConfig {
-	enc := cosmos.DefaultEncoding()
-	types.RegisterInterfaces(enc.InterfaceRegistry)
-
-	return &enc
 }

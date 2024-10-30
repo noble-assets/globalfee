@@ -32,36 +32,38 @@ func TxFeeChecker(keeper *keeper.Keeper) ante.TxFeeChecker {
 		if !ok {
 			return nil, 0, errors.Wrap(errorstypes.ErrTxDecode, "Tx must be a FeeTx")
 		}
-
-		allBypassMessages := true
-		for _, msg := range feeTx.GetMsgs() {
-			if has, _ := keeper.BypassMessages.Has(ctx, sdk.MsgTypeURL(msg)); !has {
-				allBypassMessages = false
-			}
-		}
-		if allBypassMessages {
-			return sdk.Coins{}, 0, nil
-		}
-
-		requiredFees, err := keeper.GetRequiredFees(ctx, feeTx)
-		if err != nil {
-			return nil, 0, err
-		}
-		if len(requiredFees) == 0 {
-			return sdk.Coins{}, 0, nil
-		}
-
 		fees := feeTx.GetFee()
-		sufficientFees := false
-		for _, fee := range fees {
-			found, requiredFee := requiredFees.Find(fee.Denom)
-			if found && fee.Amount.GTE(requiredFee.Amount) {
-				sufficientFees = true
-			}
-		}
 
-		if !sufficientFees {
-			return nil, 0, errors.Wrapf(errorstypes.ErrInsufficientFee, "expected at least one of %s", requiredFees)
+		if ctx.IsCheckTx() {
+			allBypassMessages := true
+			for _, msg := range feeTx.GetMsgs() {
+				if has, _ := keeper.BypassMessages.Has(ctx, sdk.MsgTypeURL(msg)); !has {
+					allBypassMessages = false
+				}
+			}
+			if allBypassMessages {
+				return sdk.Coins{}, 0, nil
+			}
+
+			requiredFees, err := keeper.GetRequiredFees(ctx, feeTx)
+			if err != nil {
+				return nil, 0, err
+			}
+			if len(requiredFees) == 0 {
+				return sdk.Coins{}, 0, nil
+			}
+
+			sufficientFees := false
+			for _, fee := range fees {
+				found, requiredFee := requiredFees.Find(fee.Denom)
+				if found && fee.Amount.GTE(requiredFee.Amount) {
+					sufficientFees = true
+				}
+			}
+
+			if !sufficientFees {
+				return nil, 0, errors.Wrapf(errorstypes.ErrInsufficientFee, "expected at least one of %s", requiredFees)
+			}
 		}
 
 		return fees, getTxPriority(fees, int64(feeTx.GetGas())), nil

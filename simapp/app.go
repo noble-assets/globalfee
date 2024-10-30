@@ -152,14 +152,11 @@ func NewSimApp(
 
 	app.App = appBuilder.Build(db, traceStore, baseAppOptions...)
 
-	anteHandler, err := NewAnteHandler(HandlerOptions{
-		HandlerOptions: ante.HandlerOptions{
-			AccountKeeper:   app.AccountKeeper,
-			BankKeeper:      app.BankKeeper,
-			SignModeHandler: app.txConfig.SignModeHandler(),
-			TxFeeChecker:    globalfee.TxFeeChecker(app.GlobalFeeKeeper),
-		},
-		cdc: app.appCodec,
+	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
+		AccountKeeper:   app.AccountKeeper,
+		BankKeeper:      app.BankKeeper,
+		SignModeHandler: app.txConfig.SignModeHandler(),
+		TxFeeChecker:    globalfee.TxFeeChecker(app.GlobalFeeKeeper),
 	})
 	if err != nil {
 		return nil, err
