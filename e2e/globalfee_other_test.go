@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGlobalFee(t *testing.T) {
+func TestThis(t *testing.T) {
 	ctx, wrapper := GlobalFeeSuite(t)
 	validator := wrapper.Chain.Validators[0]
 
@@ -61,11 +61,13 @@ func TestGlobalFee(t *testing.T) {
 
 	// ACT: Add bank transfer messages to bypass fee
 	bankSendType := sdk.MsgTypeURL(&banktypes.MsgSend{}) // /cosmos.bank.v1beta1.MsgSend
-	_, err = validator.ExecTx(ctx, wrapper.Authority.KeyName(), "globalfee", "update-bypass-messages", bankSendType, "--fees", fee)
+	o := sdk.MsgTypeURL(&types.MsgUpdateGasPrices{})
+	_, err = validator.ExecTx(ctx, wrapper.Authority.KeyName(), "globalfee", "update-bypass-messages", "/cosmos.bank.v1beta1.MsgSend", o, "--fees", fee)
 	require.NoError(t, err)
 	// ASSERT: The transaction successfully updated the bypass messages
 	raw, _, err := validator.ExecQuery(ctx, "globalfee", "bypass-messages")
 	require.NoError(t, err)
+	fmt.Println("HERERERE", string(raw))
 	var bypassMessagesResponse types.QueryBypassMessagesResponse
 	err = json.Unmarshal(raw, &bypassMessagesResponse)
 	require.NoError(t, err)

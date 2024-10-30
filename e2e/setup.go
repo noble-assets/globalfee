@@ -98,6 +98,6 @@ func preGenAuthority(ctx context.Context, wrapper *ChainWrapper) func(ibc.Chain)
 			return err
 		}
 
-		return validator.AddGenesisAccount(ctx, wrapper.Authority.FormattedAddress(), []sdk.Coin{sdk.NewCoin(chain.Config().Denom, math.ZeroInt())})
+		return validator.AddGenesisAccount(ctx, wrapper.Authority.FormattedAddress(), []sdk.Coin{sdk.NewCoin(chain.Config().Denom, math.NewInt(10000000))})
 	}
 }
