@@ -39,6 +39,7 @@ func TxFeeChecker(keeper *keeper.Keeper) ante.TxFeeChecker {
 			for _, msg := range feeTx.GetMsgs() {
 				if has, _ := keeper.BypassMessages.Has(ctx, sdk.MsgTypeURL(msg)); !has {
 					allBypassMessages = false
+					break
 				}
 			}
 			if allBypassMessages {
@@ -58,6 +59,7 @@ func TxFeeChecker(keeper *keeper.Keeper) ante.TxFeeChecker {
 				found, requiredFee := requiredFees.Find(fee.Denom)
 				if found && fee.Amount.GTE(requiredFee.Amount) {
 					sufficientFees = true
+					break
 				}
 			}
 

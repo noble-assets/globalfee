@@ -45,7 +45,7 @@ modules:
       "@type": cosmos.upgrade.module.v1.Module
       # NOTE: This is a dummy account used for local testing.
       # usual parade country forward clerk group ripple dust upset sun spike dish business foster lawn jealous panther junior kite sail erosion bean armed soup
-      authority: noble1te940q4wj533djddn8z9cf7dyhp7exfhf660dgw
+      authority: noble1te940q4wj533djddn8z9cf7dyhp7exfhf660dg
 
   - name: globalfee
     config:
