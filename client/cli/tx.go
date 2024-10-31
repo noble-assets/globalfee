@@ -42,8 +42,8 @@ func GetTxCmd() *cobra.Command {
 func TxUpdateGasPrices() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-gas-prices [gas-prices ...]",
-		Example: "update-gas-prices ustake ulove",
-		Short:   "Execute the UpdateGasPrices RPC method",
+		Short:   "Update the minimum required gas prices for non-bypassed messages",
+		Example: "update-gas-prices 0.1uusdc 0.09ueure",
 		Args:    cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

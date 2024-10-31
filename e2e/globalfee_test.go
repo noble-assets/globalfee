@@ -46,6 +46,7 @@ func TestGlobalFee(t *testing.T) {
 	err = bankSendWithFees(ctx, validator, sender, recipient, "1ustake", "0ustake")
 	// ASSERT: The transaction was successful due to no required fees.
 	require.NoError(t, err)
+
 	// ACT: Set required gas prices to 10ustake.
 	_, err = validator.ExecTx(ctx, wrapper.Authority.KeyName(), "globalfee", "update-gas-prices", gasPrice.String())
 	// ASSERT: The transaction was successful and updated the required gas prices.
@@ -59,23 +60,20 @@ func TestGlobalFee(t *testing.T) {
 	// ASSERT: The transaction failed due to insufficient fees.
 	require.ErrorContains(t, err, "insufficient fee")
 
-	// ACT: Add bank transfer messages to bypass fee
-	bankSendType := sdk.MsgTypeURL(&banktypes.MsgSend{}) // /cosmos.bank.v1beta1.MsgSend
+	// ACT: Set x/bank MsgSend as a bypassed message.
+	bankSendType := sdk.MsgTypeURL(&banktypes.MsgSend{})
 	_, err = validator.ExecTx(ctx, wrapper.Authority.KeyName(), "globalfee", "update-bypass-messages", bankSendType, "--fees", fee)
+	// ASSERT: The transaction was successful and updated the bypass messages.
 	require.NoError(t, err)
-	// ASSERT: The transaction successfully updated the bypass messages
 	raw, _, err := validator.ExecQuery(ctx, "globalfee", "bypass-messages")
 	require.NoError(t, err)
-	var bypassMessagesResponse types.QueryBypassMessagesResponse
-	err = json.Unmarshal(raw, &bypassMessagesResponse)
-	require.NoError(t, err)
-	expectedBypassMessages := types.QueryBypassMessagesResponse{
-		BypassMessages: []string{bankSendType},
-	}
-	require.Equal(t, expectedBypassMessages, bypassMessagesResponse)
+	var res types.QueryBypassMessagesResponse
+	require.NoError(t, json.Unmarshal(raw, &res))
+	require.Len(t, res.BypassMessages, 1)
+	require.Contains(t, res.BypassMessages, bankSendType)
 
-	// ACT: Attempt a bank send with no fees now that that message types is bypassed
+	// ACT: Attempt a transaction with no fees.
 	err = bankSendWithFees(ctx, validator, sender, recipient, "1ustake", "0ustake")
-	// ASSERT: The transaction was successful with no fees.
+	// ASSERT: The transaction was successful due to bypassed message.
 	require.NoError(t, err)
 }
