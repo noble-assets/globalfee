@@ -33,8 +33,10 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	modulev1 "github.com/noble-assets/globalfee/api/module/v1"
 	globalfeev1 "github.com/noble-assets/globalfee/api/v1"
+	"github.com/noble-assets/globalfee/client/cli"
 	"github.com/noble-assets/globalfee/keeper"
 	"github.com/noble-assets/globalfee/types"
+	"github.com/spf13/cobra"
 )
 
 // ConsensusVersion defines the current GlobalFee module consensus version.
@@ -141,21 +143,15 @@ func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 			Service: globalfeev1.Msg_ServiceDesc.ServiceName,
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
 				{
-					// TODO: This doesn't seem to work as AutoCLI doesn't know
-					//  how to parse sdk.DecCoin - disabling for now.
+					// TODO: For now we overwrite this with a custom implementation because AutoCLI throws errors when parsing DecCoins. Remove once hearing back from the Cosmos SDK team.
 					Skip:      true,
 					RpcMethod: "UpdateGasPrices",
-					Use:       "update-gas-prices [gas-prices ...]",
-					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
-						{
-							ProtoField: "gas_prices",
-							Varargs:    true,
-						},
-					},
 				},
 				{
 					RpcMethod: "UpdateBypassMessages",
 					Use:       "update-bypass-messages [bypass-messages ...]",
+					Short:     "Update the messages that are allowed to bypass required gas prices",
+					Example:   "update-bypass-messages /ibc.core.client.v1.MsgUpdateClient /noble.globalfee.v1.MsgUpdateGasPrices",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
 						{
 							ProtoField: "bypass_messages",
@@ -164,6 +160,7 @@ func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					},
 				},
 			},
+			EnhanceCustomCommand: true,
 		},
 		Query: &autocliv1.ServiceCommandDescriptor{
 			Service: globalfeev1.Query_ServiceDesc.ServiceName,
@@ -179,6 +176,10 @@ func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 			},
 		},
 	}
+}
+
+func (AppModule) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
 }
 
 //
