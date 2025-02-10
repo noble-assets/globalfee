@@ -20,7 +20,7 @@ golangci_lint_cmd=github.com/golangci/golangci-lint/cmd/golangci-lint
 FILES := $(shell find $(shell go list -f '{{.Dir}}' ./...) -name "*.go" -a -not -name "*.pb.go" -a -not -name "*.pb.gw.go" -a -not -name "*.pulsar.go" | sed "s|$(shell pwd)/||g")
 license-update:
 	@go-license --config .github/license.yml --remove $(FILES)
-	@go-license --config .github/license.yml $(FILES)
+	# @go-license --config .github/license.yml $(FILES)
 
 license:
 	@go-license --config .github/license.yml $(FILES)
