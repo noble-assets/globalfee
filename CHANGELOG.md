@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v1.0.1
+
+*Aug 25, 2025*
+
+This is a non-consensus breaking patch to the `v1` release line.
+
+### IMPROVEMENTS
+
+- Enforce fees to be zero for transactions with only bypass messages. ([#3](https://github.com/noble-assets/globalfee/pull/3))
+
 ## v1.0.0
 
 *Nov 10, 2024*

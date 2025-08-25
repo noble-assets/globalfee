@@ -42,7 +42,7 @@ func TxFeeChecker(keeper *keeper.Keeper) ante.TxFeeChecker {
 					break
 				}
 			}
-			if allBypassMessages {
+			if allBypassMessages && fees.IsZero() {
 				return sdk.Coins{}, 0, nil
 			}
 
