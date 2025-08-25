@@ -1,0 +1,1 @@
+- Enforce fees to be zero for transactions with only bypass messages. ([#3](https://github.com/noble-assets/globalfee/pull/3))
